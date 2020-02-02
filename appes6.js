@@ -8,7 +8,6 @@ class Book {
 
 class UI {
   addBooktoList(book) {
-    console.log(book);
     // assign the locations by grabbing the parent and adding a row
     const list = document.getElementById("book-list");
     const row = document.createElement("tr");
@@ -54,6 +53,46 @@ class UI {
   }
 }
 
+class Store {
+  static getBooks() {
+    let books;
+    if (localStorage.getItem("books") === null) {
+      books = [];
+    } else {
+      books = JSON.parse(localStorage.getItem("books"));
+    }
+    return books;
+  }
+
+  static displayBooks() {
+    const books = Store.getBooks();
+
+    for (let book of books) {
+      const ui = new UI();
+      ui.addBooktoList(book);
+    }
+  }
+
+  static addBook(book) {
+    const books = Store.getBooks();
+    books.push(book);
+
+    localStorage.setItem("books", JSON.stringify(books));
+  }
+
+  static removeBook(isbn,index) {
+    const books = Store.getBooks();
+    for (let book of books) {
+      if(book.isbn === isbn){
+        books.splice(index, 1);
+      }
+      localStorage.setItem('books',JSON.stringify(books))
+    }
+  }
+}
+
+document.addEventListener("DOMContentLoaded", Store.displayBooks);
+
 const bookForm = document.getElementById("book-form");
 
 bookForm.addEventListener("submit", function(e) {
@@ -73,6 +112,8 @@ bookForm.addEventListener("submit", function(e) {
   } else {
     ui.addBooktoList(book);
 
+    Store.addBook(book);
+
     ui.showAlert("Book has succesfully added", "success");
 
     //clear input fields
@@ -88,6 +129,9 @@ it the alerts user of the successful removal.*/
 document.getElementById("book-list").addEventListener("click", function(e) {
   const ui = new UI();
   ui.deleteBook(e.target);
+
+  Store.removeBook(e.target.parentElement.previousElementSibling.textContent);
+
   ui.showAlert("Book has been removed", "success");
   e.preventDefault();
 });
